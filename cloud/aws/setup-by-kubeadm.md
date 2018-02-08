@@ -97,4 +97,5 @@ as root:
 # Offical Documents
 <p>
 <img title="Kubernetes" src="https://kubernetes.io/images/favicon.png" style="max-width:30%;">
+<img title="Kubernetes" src="https://d33wubrfki0l68.cloudfront.net/e298a92e2454520dddefc3b4df28ad68f9b91c6f/70d52/images/docs/pre-ccm-arch.png" style="max-width:100%;">
 </p>
