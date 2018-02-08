@@ -95,4 +95,4 @@ as root:
 # Reset & Redo
 
 # Offical Documents
-![alt text](https://kubernetes.io/images/nav_logo.svg "Kubernetes")
+![alt text](https://kubernetes.io/images/favicon.png "Kubernetes")
