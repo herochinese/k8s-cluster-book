@@ -95,5 +95,4 @@ as root:
 # Reset & Redo
 
 # Offical Documents
-![alt Kubernetes]
-(https://kubernetes.io/images/nav_logo.svg)
+![alt text](https://kubernetes.io/images/nav_logo.svg "Kubernetes")
