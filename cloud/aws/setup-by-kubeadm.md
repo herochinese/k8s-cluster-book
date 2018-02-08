@@ -95,4 +95,6 @@ as root:
 # Reset & Redo
 
 # Offical Documents
-![alt text](https://kubernetes.io/images/favicon.png "Kubernetes")
+<p>
+<img title="Kubernetes" src="https://kubernetes.io/images/favicon.png" style="max-width:30%;">
+</p>
