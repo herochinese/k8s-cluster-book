@@ -1,0 +1,161 @@
+Create Kubernetes Cluster in AWS
+
+1. setup 4 t2.micro EC2 instances.
+2. Attached extra network interfaces.
+
+172.31.1.101 - k8s-1
+172.31.1.102 - k8s-2
+172.31.1.103 - k8s-3
+172.31.1.104 - k8s-4
+
+
+3. update all packages. 
+
+> sudo yum update
+
+
+
+4. connect to k8s-1
+
+ ssh ec2-user@13.54.33.154 -i mydev-aws.pem
+
+5. install packages.
+
+5.1 download kubernetes
+https://github.com/kubernetes/kubernetes/releases/download/v1.9.2/kubernetes.tar.gz
+tar xzvf kubernetes.tar.gz
+
+5.2 download flannel
+wget https://github.com/coreos/flannel/releases/download/v0.10.0/flannel-v0.10.0-linux-amd64.tar.gz
+mkdir flannel 
+cd flannel; tar xzvf ../flannel-v0.10.0-linux-amd64.tar.gz
+
+5.3 install docker
+
+sudo yum install docker 
+
+5.4 etcd
+
+wget https://github.com/coreos/etcd/releases/download/v3.3.0-rc.4/etcd-v3.3.0-rc.4-linux-amd64.tar.gz
+
+sudo useradd -U -d /var/lib/etcd -m -c "etcd user" -s /sbin/nologin etcd
+sudo cp etcd etcdctl /usr/local/bin/
+sudo mkdir -p /etc/etcd
+sudo touch /etc/etcd/etcd.conf
+sudo chown -R etcd:etcd /etc/etcd
+etcd --name happy-etcd --data-dir /tmp/happy.etcd &
+
+
+[ec2-user@k8s-1 etcd-v3.3.0-rc.4-linux-amd64]$ etcdctl set /my/happy/data "test"
+test
+[ec2-user@k8s-1 etcd-v3.3.0-rc.4-linux-amd64]$ etcdctl get /my/happy/data
+test
+[ec2-user@k8s-1 etcd-v3.3.0-rc.4-linux-amd64]$ curl -L http://localhost:2379/v2/keys/my/happy/data
+{"action":"get","node":{"key":"/my/happy/data","value":"test","modifiedIndex":4,"createdIndex":4}}
+[ec2-user@k8s-1 etcd-v3.3.0-rc.4-linux-amd64]$ curl -L http://localhost:2379/v2/keys/my/happy/data|jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100    99  100    99    0     0   9351      0 --:--:-- --:--:-- --:--:--  9900
+{
+  "action": "get",
+  "node": {
+    "key": "/my/happy/data",
+    "value": "test",
+    "modifiedIndex": 4,
+    "createdIndex": 4
+  }
+}
+[ec2-user@k8s-1 etcd-v3.3.0-rc.4-linux-amd64]$ man curl
+[ec2-user@k8s-1 etcd-v3.3.0-rc.4-linux-amd64]$ curl -L http://localhost:2379/v2/keys/my/happy/data -XPUT -d value="my happy day"
+{"action":"set","node":{"key":"/my/happy/data","value":"my happy day","modifiedIndex":5,"createdIndex":5},"prevNode":{"key":"/my/happy/data","value":"test","modifiedIndex":4,"createdIndex":4}}
+[ec2-user@k8s-1 etcd-v3.3.0-rc.4-linux-amd64]$ curl -L http://localhost:2379/v2/keys/my/happy/data|jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   107  100   107    0     0  12594      0 --:--:-- --:--:-- --:--:-- 13375
+{
+  "action": "get",
+  "node": {
+    "key": "/my/happy/data",
+    "value": "my happy day",
+    "modifiedIndex": 5,
+    "createdIndex": 5
+  }
+}
+
+6. flannel
+
+6.1 config
+
+It might need stop and remove docker interfaces
+- service docker stop
+- ip link delete docker0
+-
+
+
+etcdctl set /coreos.com/network/config < flannel-config-udp.json
+etcdctl set /coreos.com/network/config < flannel-config-vxlan.json
+
+
+6.2 Run flannel with ##same etcd backen## in order to get same config and store config to same place.
+
+modify /etc/init.d/flannel -> etcd-endpoints
+
+6.3 check out /run/flannel/subnet.env and modify /etc/sysconfig/docker as per subnet.env
+more /run/flannel/subnet.env
+
+FLANNEL_NETWORK=192.168.0.0/16
+FLANNEL_SUBNET=192.168.43.1/24
+FLANNEL_MTU=8951
+FLANNEL_IPMASQ=true
+
+
+>>>>>/etc/sysconfig/docker
+
+# The max number of open files for the daemon itself, and all
+# running containers.  The default value of 1048576 mirrors the value
+# used by the systemd service unit.
+DAEMON_MAXFILES=1048576
+
+# Additional startup options for the Docker daemon, for example:
+# OPTIONS="--ip-forward=true --iptables=true"
+# By default we limit the number of open files per container
+OPTIONS="--bip=192.168.43.1/24 --mtu=8951 --ip-masq=true --default-ulimit nofile=1024:4096"
+
+# How many seconds the sysvinit script waits for the pidfile to appear
+# when starting the daemon.
+DAEMON_PIDFILE_TIMEOUT=10
+
+<<<<<<<
+--bip ?
+--mtu ?
+--ip-masq ?
+<<<<<<<
+
+7. install kubernetes
+
+7.1 goto https://github.com/kubernetes/kubernetes/releases
+
+curl -L -O https://github.com/GoogleCloudPlatform/kubernetes/releases/download/v1.1.2/kubernetes.tar.gz
+
+Or download latest version
+
+7.2 
+
+cp kubernetes/server/bin/* /usr/local/bin/.
+cp kubernetes-master /etc/init.d/.
+
+7.3
+CLUSTER_NAME="<your cluster name>"
+ETCD_SERVERS="<etcd endpoint URL>:<etcd exposed port>"
+CLUSTER_IP_RANGE="<CIDR of overlay network>"
+MASTER="127.0.0.1:8080"
+
+
+7.4 
+kubernetes-node
+
+
+
+
+
+
