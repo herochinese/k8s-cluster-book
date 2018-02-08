@@ -91,6 +91,17 @@ as root:
 
 
 ## 7. Install Kubernetes dashboard
+To deploy Dashboard, execute following command:
+
+$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+To access Dashboard from your local workstation you must create a secure channel to your Kubernetes cluster. Run the following command:
+
+$ kubectl proxy
+Now access Dashboard at:
+
+http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/.
+
+
 
 # Reset & Redo
 
