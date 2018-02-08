@@ -1,6 +1,7 @@
 
 # Checkout @cookbook.md with required things.
 
+
 # Instruction
 
 ## 1. Provision EC2 in AWS
@@ -92,3 +93,7 @@ as root:
 ## 7. Install Kubernetes dashboard
 
 # Reset & Redo
+
+# Offical Documents
+![alt Kubernetes]
+(https://kubernetes.io/images/nav_logo.svg)
