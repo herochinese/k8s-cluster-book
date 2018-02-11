@@ -43,10 +43,10 @@ $ sudo su
 # apt-get update && apt-get install -y apt-transport-https
 # curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 # cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
-  deb http://apt.kubernetes.io/ kubernetes-xenial main
-  EOF
-#apt-get update
-#apt-get install -y kubelet kubeadm kubectl
+deb http://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+# apt-get update
+# apt-get install -y kubelet kubeadm kubectl
 
 ```
 
@@ -89,6 +89,8 @@ as root:
 
   kubeadm join --token 310646.cad5f837b000d2ab 172.31.16.192:6443 --discovery-token-ca-cert-hash sha256:53526aa487c4e889397e8aab59d820ce931b4570603208b56df8949ff0f08dbe
 
+kubeadm join --token f9a977.78e13c521cc5b240 10.0.1.95:6443 --discovery-token-ca-cert-hash sha256:bedc0f46f4e96d94941f5a6b608751051269a96f0467a94d9937759ebf95d0de
+
 
 ## 7. Install Kubernetes dashboard
 To deploy Dashboard, execute following command:
@@ -97,11 +99,11 @@ To deploy Dashboard, execute following command:
 
 To access Dashboard from your local workstation you must create a secure channel to your Kubernetes cluster. Run the following command:
 
->$ kubectl proxy
+>$ kubectl proxy --address 0.0.0.0 --accept-hosts '.*'
 
 Now access Dashboard at:
 
->http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/.
+>http://13.211.168.5:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/.
 
 
 
