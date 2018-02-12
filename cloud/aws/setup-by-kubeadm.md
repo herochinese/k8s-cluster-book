@@ -92,6 +92,11 @@ as root:
 kubeadm join --token f9a977.78e13c521cc5b240 10.0.1.95:6443 --discovery-token-ca-cert-hash sha256:bedc0f46f4e96d94941f5a6b608751051269a96f0467a94d9937759ebf95d0de
 
 
+Use following command to print out join command if you delete initial output:
+```
+kubeadm token create `kubeadm token generate` --print-join-command --ttl=0
+```
+
 ## 7. Install Kubernetes dashboard
 To deploy Dashboard, execute following command:
 
@@ -105,6 +110,51 @@ Now access Dashboard at:
 
 >http://13.211.168.5:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/.
 
+
+- Setup to login into Dashboard
+
+create user:
+>>> user.yml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kube-system
+
+kubectl apply -f ./user.yml
+
+Bind role with admin-user:
+>>>role.yml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kube-system
+
+kubectl apply -f ./role.yml
+
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
+
+Get token ... copy token for login ...
+
+!!! Dashboard should not be be exposed publicly, so nothing will happened after clicking "Sign In" button in login page. !!!
+
+kubectl -n kube-system edit service kubernetes-dashboard
+
+      Change type: ClusterIP to type: NodePort
+
+kubectl -n kube-system get service kubernetes-dashboard
+NAME                   TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)         AGE
+kubernetes-dashboard   NodePort   10.96.245.29   <none>        443:32034/TCP   38m
+
+Dashboard has been exposed on port 31707 (HTTPS). Now you can access it from your browser at: https://<master-ip>:31707. master-ip can be found by executing kubectl cluster-info.
 
 
 # Reset & Redo
