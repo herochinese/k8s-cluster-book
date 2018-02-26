@@ -1,6 +1,8 @@
 
 # Checkout @cookbook.md with required things.
 
+# HA Architecture Diagram
+<img src="../../ha.svg">
 
 # Instruction
 
