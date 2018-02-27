@@ -92,12 +92,21 @@ Need to setup different nodes, include etc1/etc2/etc2. Can install etcd inside o
 ===
 
 rm -rf /var/lib/etcd*
-docker-compose etcd/docker-compose.yml stop 
-docker-compose etcd/docker-compose.yml rm -f 
-docker-compose etcd/docker-compose.yml up -d
+docker-compose -f etcd/docker-compose.yml stop 
+docker-compose -f etcd/docker-compose.yml rm -f 
+docker-compose -f etcd/docker-compose.yml up -d
 
-docker exec -it etcd etcdctl clust-health 
+docker exec -it etcd etcdctl cluster-health 
 docker exec -it etcd etcdctl member list
+
+---
+If you remove bridge(ip linke delete br-sdfaawe)  - docker-compse created,
+
+docker network rm etcd_dsdsdsdsd
+and then 
+docker-compose -f etcd/docker-compose.yml up -d
+
+----
 
 
 3. Initialize k8s cluster
@@ -179,3 +188,49 @@ as root:
 
   kubeadm join --token 73c6a6.659ebcf9ff5ba25c 10.0.1.95:6443 --discovery-token-ca-cert-hash sha256:6a70131519f68aed9e5df99afff65069d5dd4bec1377999abca9d24eb3601350
  
+kubeadm join --token 73c6a6.659ebcf9ff5ba25c 10.0.1.95:6443 --discovery-token-ca-cert-hash sha256:7198b8b3dbe02adb6df66df7201d917132a613916a80fec0287b78cb7678b99f
+
+ 4. Install overlay network: flannel
+
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.9.1/Documentation/kube-flannel.yml
+
+#checkout status
+kubectl get pods --all-namespaces -o wide -w
+
+# set master node as schedulable
+$ kubectl taint nodes --all node-role.kubernetes.io/master-
+
+
+
+5. install dashboard
+kubecl apply -f kube-dashboard/kubenetets-dashboard.yml
+
+root@ip-10-0-1-95:~/k8s# kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
+Name:         admin-user-token-7xb8n
+Namespace:    kube-system
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name=admin-user
+              kubernetes.io/service-account.uid=bef53e39-1b9b-11e8-9cf3-020b67844904
+
+Type:  kubernetes.io/service-account-token
+
+Data
+====
+ca.crt:     1025 bytes
+namespace:  11 bytes
+token:      eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhZG1pbi11c2VyLXRva2VuLTd4YjhuIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImFkbWluLXVzZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiJiZWY1M2UzOS0xYjliLTExZTgtOWNmMy0wMjBiNjc4NDQ5MDQiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3ViZS1zeXN0ZW06YWRtaW4tdXNlciJ9.k-F7RTKfj8paYVa9wBQ6k8JLQoPndGLQgf9PNkygH4eACoCegJ5pbJmI3LDKHEUOY4cYEyhJwwWzKhh2NZkF1nRVUeojBn9ZiRMQ6gvWxKohQjbmnfpOEV8VRkTXl02NXQ9DgAtsROdFoUL77O6kPFn8MRjQjZj-C5r9bzOYHF5NWC4xMPjaedW_mrNaXM2jdeyi8OqntL5r9nVFzTBrU05d2CX4CrTESNmn_zHXy4km5-io_cK25u9VBp8MNFZg3j4_h0t1BJdiRK2ERTZCySfR5vlIEF53MQSKATOXphx6dfqJEpU20H4xfPyBgASMG4XXrbC4-pYibrgcVaskaw
+
+
+6. Other master nodes
+other master nodes init
+on devops-master02: use kubeadm to init master cluster
+# you will found that output token and discovery-token-ca-cert-hash are the same with devops-master01
+$ kubeadm init --config=kubeadm-init.yaml
+...
+  kubeadm join --token 7f276c.0741d82a5337f526 192.168.20.28:6443 --discovery-token-ca-cert-hash sha256:a4a1eaf725a0fc67c3028b3063b92e6af7f2eb0f4ae028f12b3415a6fd2d2a5e
+on devops-master03: use kubeadm to init master cluster
+# you will found that output token and discovery-token-ca-cert-hash are the same with devops-master01
+$ kubeadm init --config=kubeadm-init.yaml
+...
+  kubeadm join --token 7f276c.0741d82a5337f526 192.168.20.29:6443 --discovery-token-ca-cert-hash sha256:a4a1eaf725a0fc67c3028b3063b92e6af7f2eb0f4ae028f12b3415a6fd2d2a5e
+
